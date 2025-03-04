@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const fetch = require("node-fetch");
 require("dotenv").config();
 
 const app = express();
@@ -9,12 +10,7 @@ const PORT = process.env.PORT || 10000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// ✅ Health Check Route (Ensure server is running)
-app.get("/", (req, res) => {
-    res.send("✅ FSRA Chatbot Backend is running.");
-});
-
-// ✅ Chatbot Route
+// ✅ AI Chatbot Route (Connects to OpenAI API)
 app.post("/chat", async (req, res) => {
     const userMessage = req.body.message;
 
@@ -22,8 +18,34 @@ app.post("/chat", async (req, res) => {
         return res.status(400).json({ error: "Message is required" });
     }
 
-    // Mock AI response (Replace with actual AI logic later)
-    res.json({ reply: `You asked: "${userMessage}". This is a test response.` });
+    try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: "gpt-4", // Use "gpt-3.5-turbo" if GPT-4 is unavailable
+                messages: [
+                    { role: "system", content: "You are an FSRA policy expert. Respond based on FSRA policies and underwriting rules." },
+                    { role: "user", content: userMessage }
+                ]
+            })
+        });
+
+        const data = await response.json();
+        res.json({ reply: data.choices[0].message.content });
+
+    } catch (error) {
+        console.error("Error connecting to OpenAI API:", error);
+        res.status(500).json({ error: "Failed to connect to OpenAI API" });
+    }
+});
+
+// ✅ Test Route (Check if server is running)
+app.get("/", (req, res) => {
+    res.send("FSRA Chatbot Backend is running.");
 });
 
 // ✅ Start Server
