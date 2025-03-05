@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const fetch = require("node-fetch");
 require("dotenv").config();
 
 const app = express();
@@ -35,7 +34,14 @@ app.post("/chat", async (req, res) => {
         });
 
         const data = await response.json();
-        res.json({ reply: data.choices[0].message.content });
+
+        // ✅ Fix: Ensure the response is properly handled
+        if (data.choices && data.choices.length > 0) {
+            res.json({ reply: data.choices[0].message.content });
+        } else {
+            console.error("Error: Invalid API Response", data);
+            res.status(500).json({ error: "Invalid API Response" });
+        }
 
     } catch (error) {
         console.error("Error connecting to OpenAI API:", error);
