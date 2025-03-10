@@ -58,3 +58,26 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });
+
+app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+
+    // Simulated authentication (Replace this with real database authentication)
+    const users = [
+        { email: "whynettenikolle@gmail.com", name: "Nicole Gonzales", role: "Insurance Carrier" },
+        { email: "gwynethnicole.gonzales@yahoo.ca", name: "Gwyneth Gonzales", role: "FSRA" }
+    ];
+
+    const user = users.find(u => u.email === email);
+
+    if (!user) {
+        return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    res.json({ name: user.name, role: user.role });
+});
+
+app.get("/pending-requests", async (req, res) => {
+    // Simulated pending requests for FSRA roles
+    res.json({ requests: ["Request 1: Review Policy #A123", "Request 2: Customer Inquiry #B456"] });
+});
